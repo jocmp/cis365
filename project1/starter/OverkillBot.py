@@ -1,7 +1,5 @@
 import hlt
-from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move, Square
-import random
-
+from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move
 
 myID, game_map = hlt.get_init()
 hlt.send_init("OverkillBot")
@@ -21,6 +19,7 @@ def find_nearest_enemy_direction(square):
             max_distance = distance
     return direction
 
+
 def heuristic(square):
     if square.owner == 0 and square.strength > 0:
         return square.production / square.strength
@@ -28,11 +27,12 @@ def heuristic(square):
         # return total potential damage caused by overkill when attacking this square
         return sum(neighbor.strength for neighbor in game_map.neighbors(square) if neighbor.owner not in (0, myID))
 
+
 def get_move(square):
     target, direction = max(((neighbor, direction) for direction, neighbor in enumerate(game_map.neighbors(square))
-                                if neighbor.owner != myID),
-                                default = (None, None),
-                                key = lambda t: heuristic(t[0]))
+                             if neighbor.owner != myID),
+                            default=(None, None),
+                            key=lambda t: heuristic(t[0]))
     if target is not None and target.strength < square.strength:
         return Move(square, direction)
     elif square.strength < square.production * 5:
@@ -42,12 +42,11 @@ def get_move(square):
     if not border:
         return Move(square, find_nearest_enemy_direction(square))
     else:
-        #wait until we are strong enough to attack
+        # wait until we are strong enough to attack
         return Move(square, STILL)
 
-    
+
 while True:
     game_map.get_frame()
     moves = [get_move(square) for square in game_map if square.owner == myID]
     hlt.send_frame(moves)
-
