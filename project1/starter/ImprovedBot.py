@@ -1,7 +1,7 @@
-import hlt
-from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move, Square
 import random
 
+import hlt
+from hlt import NORTH, WEST, STILL, Move
 
 myID, game_map = hlt.get_init()
 hlt.send_init("ImprovedBot")
