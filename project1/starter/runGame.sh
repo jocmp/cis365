@@ -1,9 +1,14 @@
 #!/bin/bash
 
-rm *.hlt
+if [ -f *.hlt ]; then
+    rm *.hlt
+fi
+
+if [ -f *.log ]; then
+    rm *.log
+fi
 
 current_bot="../MyBot.py"
-# current_bot="../MyBot.py"
 opponent_bot="OverkillBot.py"
 
 if hash python3 2>/dev/null; then

@@ -1,8 +1,0 @@
- --- Init ---
-/usr/local/Cellar/python3/3.5.2_3/Frameworks/Python.framework/Versions/3.5/Resources/Python.app/Contents/MacOS/Python: can't open file 'project1.starter.OverkillBot.py': [Errno 2] No such file or directory
- --- Bot used 52 milliseconds ---
------------------------------------------------------------------------------
- --- Frame #1 ---
-
-ERRORED!
-No response received.
