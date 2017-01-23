@@ -1,3 +1,6 @@
 .idea/
 project1/starter/halite
 __pycache__/
+*.hlt
+*.log
+*.zip
