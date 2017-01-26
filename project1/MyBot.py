@@ -16,22 +16,9 @@ class AutomatonsBot:
         self.count = 0
         self.last_percentage = 0
 
-    def _find_nearest_enemy_direction(self, game_map, square):
+    def _find_nearest_enemy_direction(self, game_map, start):
         max_distance = min(game_map.width, game_map.height) / 2
         direction = NORTH
-        for cardinal_direction in CARDINAL_DIRECTIONS:
-            distance = 0
-            current_square = square
-            while current_square.owner == self.bot_id and distance < max_distance:
-                distance += 1
-                current_square = game_map.get_target(current_square, cardinal_direction)
-            if distance < max_distance:
-                direction = cardinal_direction
-                max_distance = distance
-        return direction
-
-    def _find_nearest_enemy(self, game_map, start):
-        max_distance = min(game_map.width, game_map.height) / 2
         square = start
         for cardinal_direction in CARDINAL_DIRECTIONS:
             distance = 0
@@ -40,9 +27,9 @@ class AutomatonsBot:
                 distance += 1
                 current_square = game_map.get_target(current_square, cardinal_direction)
             if distance < max_distance:
-                square = current_square
+                direction = cardinal_direction
                 max_distance = distance
-        return square
+        return square, direction
 
     # def _find_highest_production(self, game_map, start):
     #     max_distance = min(game_map.width, game_map.height) / 2
@@ -60,6 +47,7 @@ class AutomatonsBot:
     #     return square
 
     def _dijkstra(self, game_map, square):
+        "See <http://www.redblobgames.com/pathfinding/a-star/introduction.html> for original impl."
         frontier = PriorityQueue()
         came_from = {}
         cost_so_far = {}
