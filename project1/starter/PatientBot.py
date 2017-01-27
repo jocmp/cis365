@@ -8,7 +8,11 @@ hlt.send_init("PatientBot")
 
 
 def get_move(square):
-    _, direction = next(((neighbor.strength, direction) for direction, neighbor in enumerate(game_map.neighbors(square)) if neighbor.owner != myID and neighbor.strength < square.strength), (None, None))
+    _, direction = next(((neighbor.strength, direction)
+                         for direction, neighbor
+                         in enumerate(game_map.neighbors(square))
+                         if neighbor.owner != myID
+                         and neighbor.strength < square.strength), (None, None))
     if direction is not None:
         return Move(square, direction)
     elif square.strength < square.production * 5:
