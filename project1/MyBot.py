@@ -59,7 +59,7 @@ class AutomatonsBot:
                 direction = square_direction
 
             for cardinal_direction, next in enumerate(game_map.neighbors(current_square)):
-                new_cost = cost_so_far[current_square] + self._heuristic(game_map,current_square)
+                new_cost = cost_so_far[current_square] + self._cost(next)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
                     priority = new_cost + game_map.get_distance(current_square, goal)
@@ -67,6 +67,27 @@ class AutomatonsBot:
                     came_from[next] = current_square
 
         return direction
+
+    def _find_max_production_direction(self, game_map, start):
+        max_distance = min(game_map.width, game_map.height) / 2
+        direction = NORTH
+        max_production = start.production
+        square = start
+        for cardinal_direction in CARDINAL_DIRECTIONS:
+            distance = 0
+            current_square = start
+            while distance < max_distance:
+                distance += 1
+                current_square = game_map.get_target(current_square, cardinal_direction)
+                if current_square.owner != self.bot_id and current_square.production > max_production:
+                    max_production = current_square.production
+                    direction = cardinal_direction
+        return square, direction
+
+    def _cost(self, square):
+        if square.owner == 0 and square.strength > 0:
+            return square.production / square.strength
+        return square.production
 
     def _heuristic(self, game_map, square):
         if square.owner == 0 and square.strength > 0:
@@ -95,7 +116,9 @@ class AutomatonsBot:
 
         border = any(neighbor.owner != self.bot_id for neighbor in game_map.neighbors(square))
         if not border:
-            if not self.has_made_contact:
+            if self.is_early_game():
+                return Move(square, self._find_max_production_direction(game_map, square)[1])
+            elif not self.has_made_contact:
                 return Move(square, self._dijkstra(game_map, square))
             else:
                 return Move(square, self._find_nearest_enemy(game_map, square)[1])
