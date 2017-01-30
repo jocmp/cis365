@@ -25,11 +25,10 @@ class AutomatonsBot:
         a breadth-first search that radiates outward based on cardinal directions
         :param game_map: Current frame's game map
         :param start: Starting current player square
-        :return: The nearest enemy square and direction
+        :return: The nearest enemy direction
         """
         max_distance = min(game_map.width, game_map.height) / 2
         direction = NORTH
-        square = start
         for cardinal_direction in CARDINAL_DIRECTIONS:
             distance = 0
             current_square = start
@@ -40,7 +39,7 @@ class AutomatonsBot:
                 direction = cardinal_direction
                 max_distance = distance
 
-        return square, direction
+        return direction
 
     def __heuristic(self, game_map, square):
         """
@@ -84,9 +83,9 @@ class AutomatonsBot:
         border = any(neighbor.owner != self.bot_id for neighbor in game_map.neighbors(square))
         if not border:
             if self.__is_early_game():
-                return Move(square, self.__find_max_production_direction(game_map, square)[1])
+                return Move(square, self.__find_max_production_direction(game_map, square))
             else:
-                return Move(square, self.__find_nearest_enemy(game_map, square)[1])
+                return Move(square, self.__find_nearest_enemy(game_map, square))
         else:
             # wait until we are strong enough to attack
             return Move(square, STILL)
@@ -95,9 +94,9 @@ class AutomatonsBot:
         """
         Modified breadth-first search to find areas of high production. This is used
         in early game before switching to an enemy-based breadth-first search
-        :param game_map:
-        :param start:
-        :return:
+        :param game_map: Current game map for frame
+        :param start: Starting square
+        :return: Direction of max production
         """
         max_distance = min(game_map.width, game_map.height) / 2
         direction = NORTH
@@ -112,7 +111,7 @@ class AutomatonsBot:
                     max_production = current_square.production
                     direction = cardinal_direction
 
-        return start, direction
+        return direction
 
     def __is_early_game(self):
         return self.counter / total_frame_count <= 0.33
