@@ -1,11 +1,6 @@
 import hlt
 from hlt import NORTH, EAST, SOUTH, WEST, STILL, Move
-from queue import PriorityQueue
 from math import sqrt
-
-'''
-The AutomatonsBot is based off of the Pythonic Overkill bot
-'''
 
 total_frame_count = 0
 CARDINAL_DIRECTIONS = [NORTH, EAST, SOUTH, WEST]
@@ -13,15 +8,25 @@ CAP = 255
 
 
 class AutomatonsBot:
+    """
+    Class for instantiating a single bot for a game
+    """
+
     def __init__(self, id):
         self.bot_id = id
         self.counter = 0
         self.move_count = 0
         self.strength_sum = 0
         self.has_made_contact = False
-        self.last_leader_direction = STILL
 
-    def _find_nearest_enemy(self, game_map, start):
+    def __find_nearest_enemy(self, game_map, start):
+        """
+        This method is used by default by the Overkill bot. It is
+        a breadth-first search that radiates outward based on cardinal directions
+        :param game_map: Current frame's game map
+        :param start: Starting current player square
+        :return: The nearest enemy square and direction
+        """
         max_distance = min(game_map.width, game_map.height) / 2
         direction = NORTH
         square = start
@@ -37,68 +42,30 @@ class AutomatonsBot:
 
         return square, direction
 
-    def _dijkstra(self, game_map, square):
-        "See <http://www.redblobgames.com/pathfinding/a-star/introduction.html> for original impl."
-        frontier = PriorityQueue()
-        came_from = {}
-        cost_so_far = {}
-
-        came_from[square] = None
-        cost_so_far[square] = 0
-
-        goal = self._find_nearest_enemy(game_map, square)[0]
-
-        frontier.put((square, STILL), 0)
-
-        direction = NORTH
-
-        while not frontier.empty():
-            current_square, square_direction = frontier.get()
-
-            if current_square.owner != self.bot_id:
-                direction = square_direction
-
-            for cardinal_direction, next in enumerate(game_map.neighbors(current_square)):
-                new_cost = cost_so_far[current_square] + self._cost(next)
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + game_map.get_distance(current_square, goal)
-                    frontier.put((next, cardinal_direction), priority)
-                    came_from[next] = current_square
-
-        return direction
-
-    def _find_max_production_direction(self, game_map, start):
-        max_distance = min(game_map.width, game_map.height) / 2
-        direction = NORTH
-        max_production = start.production
-        square = start
-        for cardinal_direction in CARDINAL_DIRECTIONS:
-            distance = 0
-            current_square = start
-            while distance < max_distance:
-                distance += 1
-                current_square = game_map.get_target(current_square, cardinal_direction)
-                if current_square.owner != self.bot_id and current_square.production > max_production:
-                    max_production = current_square.production
-                    direction = cardinal_direction
-        return square, direction
-
-    def _cost(self, square):
-        if square.owner == 0 and square.strength > 0:
-            return square.production / square.strength
-        return square.production
-
-    def _heuristic(self, game_map, square):
+    def __heuristic(self, game_map, square):
+        """
+        Default heuristic used for Overkill bot, used to find the highest
+        yield for unoccupied squares, or the sum of the effective Overkill for a given
+         opponent square
+        :param game_map: Current frame's game map
+        :param square: Current square
+        :return: Heuristic value, based on the occupant
+        """
         if square.owner == 0 and square.strength > 0:
             return square.production / square.strength
         else:
-            # return total potential damage caused by overkill when attacking this square
             return sum(neighbor.strength
                        for neighbor in game_map.neighbors(square)
                        if neighbor.owner not in (0, self.bot_id))
 
-    def _get_move(self, game_map, square):
+    def __get_move(self, game_map, square):
+        """
+        Called by `get_moves` for each piece. Depending on the state of the game
+        (early or late) and whether or not the piece has a target
+        :param game_map: Current frame's game map
+        :param square: Current player square
+        :return: Move for a player square for a given frame
+        """
         self.strength_sum += square.strength
         self.move_count += 1
         target, direction = max(((neighbor, direction)
@@ -106,7 +73,7 @@ class AutomatonsBot:
                                  in enumerate(game_map.neighbors(square))
                                  if neighbor.owner != self.bot_id),
                                 default=(None, None),
-                                key=lambda t: self._heuristic(game_map, t[0]))
+                                key=lambda t: self.__heuristic(game_map, t[0]))
 
         if target is not None and target.strength < square.strength:
             self.has_made_contact = target not in (0, self.bot_id)
@@ -116,23 +83,44 @@ class AutomatonsBot:
 
         border = any(neighbor.owner != self.bot_id for neighbor in game_map.neighbors(square))
         if not border:
-            if self.is_early_game():
-                return Move(square, self._find_max_production_direction(game_map, square)[1])
-            elif not self.has_made_contact:
-                return Move(square, self._dijkstra(game_map, square))
+            if self.__is_early_game():
+                return Move(square, self.__find_max_production_direction(game_map, square)[1])
             else:
-                return Move(square, self._find_nearest_enemy(game_map, square)[1])
+                return Move(square, self.__find_nearest_enemy(game_map, square)[1])
         else:
             # wait until we are strong enough to attack
             return Move(square, STILL)
 
-    def is_early_game(self):
+    def __find_max_production_direction(self, game_map, start):
+        """
+        Modified breadth-first search to find areas of high production. This is used
+        in early game before switching to an enemy-based breadth-first search
+        :param game_map:
+        :param start:
+        :return:
+        """
+        max_distance = min(game_map.width, game_map.height) / 2
+        direction = NORTH
+        max_production = start.production
+        for cardinal_direction in CARDINAL_DIRECTIONS:
+            distance = 0
+            current_square = start
+            while distance < max_distance:
+                distance += 1
+                current_square = game_map.get_target(current_square, cardinal_direction)
+                if current_square.owner != self.bot_id and current_square.production > max_production:
+                    max_production = current_square.production
+                    direction = cardinal_direction
+
+        return start, direction
+
+    def __is_early_game(self):
         return self.counter / total_frame_count <= 0.33
 
     def get_moves(self, game_map):
         self.counter += 1
         self.move_count = 0
-        return [self._get_move(game_map, square) for square in game_map if square.owner == self.bot_id]
+        return [self.__get_move(game_map, square) for square in game_map if square.owner == self.bot_id]
 
 
 def main():
@@ -140,6 +128,7 @@ def main():
     hlt.send_init("MyBot")
     bot = AutomatonsBot(my_id)
     global total_frame_count
+    # Dynamic total frame count according to Halite rules
     total_frame_count = 10 * sqrt(game_map.width * game_map.height)
     while True:
         game_map.get_frame()
