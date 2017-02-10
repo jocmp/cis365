@@ -4,3 +4,4 @@ __pycache__/
 *.hlt
 *.log
 *.zip
+.DS_Store
