@@ -107,8 +107,9 @@ class AutomatonsBot:
             while distance < max_distance:
                 distance += 1
                 current_square = game_map.get_target(current_square, cardinal_direction)
-                if current_square.owner != self.bot_id and current_square.production > max_production:
-                    max_production = current_square.production
+                weighted_production = current_square.production - distance
+                if current_square.owner != self.bot_id and weighted_production > max_production:
+                    max_production = weighted_production
                     direction = cardinal_direction
 
         return direction
@@ -119,8 +120,6 @@ class AutomatonsBot:
     def get_moves(self, game_map):
         self.counter += 1
         self.move_count = 0
-        return [self.__get_move(game_map, square) for square in game_map if square.owner == self.bot_id]
-
 
 def main():
     my_id, game_map = hlt.get_init()
