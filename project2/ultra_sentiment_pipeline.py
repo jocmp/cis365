@@ -75,7 +75,7 @@ tfidf = TfidfVectorizer(strip_accents=None,
 # Look to documentation on Regression or similar methods for hints.
 # Possibly investigate alternative classifiers for text/sentiment.
 lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', LogisticRegression(C=1, fit_intercept=False, penalty='l1', random_state=0))])
+                     ('clf', LogisticRegression(C=1, fit_intercept=False, penalty='l2', random_state=0))])
 
 # Train the pipline using the training set.
 lr_tfidf.fit(X_train, y_train)
