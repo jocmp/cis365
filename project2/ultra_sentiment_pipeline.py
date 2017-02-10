@@ -46,7 +46,7 @@ df = pd.read_csv(Constants.PARSED_DATA)
 # of your training and test sets for improved 
 # predictive performance.
 training_size = 40000
-split = training_size / 10
+split = training_size / 8 # the test data will have 5,000 entries
 
 test_upper_limit = split - 1
 test_lower_limit = 0
