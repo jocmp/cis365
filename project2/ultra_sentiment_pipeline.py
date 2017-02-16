@@ -40,9 +40,13 @@ class UltraPipeline:
     def tokenizer(text):
         cleaned_text = HTMLCleaner.clean(text)
         tokens = word_tokenize(cleaned_text)
-        tokens = [i for i in tokens if i not in string.punctuation]
+        tokens_without_punctuation = [UltraPipeline.parse_punctuation(token) for token in tokens]
         stemmer = PorterStemmer()
-        return [stemmer.stem(token) for token in tokens]
+        return [stemmer.stem(token) for token in tokens_without_punctuation if len(token) > 0]
+
+    @staticmethod
+    def parse_punctuation(word):
+        return ''.join([character for character in word if character not in string.punctuation])
 
     @staticmethod
     def run(grid_search=False):
@@ -56,7 +60,7 @@ class UltraPipeline:
         x = df.loc[:training_size, 'review'].values
         y = df.loc[:training_size, 'sentiment'].values
 
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.125, random_state=0)
 
         # Perform feature extraction on the text.
         # Hint: Perhaps there are different preprocessors to
@@ -73,7 +77,7 @@ class UltraPipeline:
 
         # LogisticRegressionCV ==> k = 5 or 10
 
-        clf = LogisticRegressionCV(cv=10, fit_intercept=False, random_state=31, n_jobs=-1)
+        clf = LogisticRegressionCV(cv=10, random_state=31, n_jobs=-1)
         lr_tfidf = Pipeline([('vect', tfidf), ('clf', clf)])
 
         if grid_search:
@@ -100,12 +104,12 @@ class UltraPipeline:
 
         grid = dict(vect__tokenizer=[UltraPipeline.tokenizer, None],
                     vect__strip_accents=['unicode', 'ascii'],
-                    lowercase=[True, False],
+                    vect__lowercase=[True, False],
                     vect__stop_words=['english', stop, None],
                     clf__max_iter=[10, 100],
                     clf__fit_intercept=[True, False],
                     clf__penalty=['l2'],
-                    clf__solver=['liblinear', 'newton-cg'])
+                    clf__solver=['liblinear'])
 
         start = time()
         # run grid search
