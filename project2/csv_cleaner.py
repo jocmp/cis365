@@ -21,8 +21,15 @@ class HTMLCleaner(HTMLParser):
         return ' '.join(self.fed)
 
     @staticmethod
-    def clean(text):
+    def clean(csv_in, csv_out):
         cleaner = HTMLCleaner()
-        cleaner_text = text.replace('</3', '')  # edge case for broken heart
-        cleaner.feed(cleaner_text)
-        return cleaner.data()
+        dirty_csv = open(csv_in, 'r')
+        clean_csv = open(csv_out, 'w')
+        for line in dirty_csv:
+            line = line.replace('</3', '')  # edge case for broken heart
+            cleaner.feed(line)
+            clean_csv.write(cleaner.data())
+            cleaner = HTMLCleaner()
+
+        dirty_csv.close()
+        clean_csv.close()
