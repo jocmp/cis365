@@ -94,8 +94,14 @@ class UltraPipeline:
 
         pipeline = Pipeline([('vect', tfidf), ('clf', clf)])
 
-        grid = dict(vect__lowercase=[True, False],
-                    clf__fit_intercept=[True, False])
+        grid = dict(vect__tokenizer=[UltraPipeline.tokenizer, None],
+                    vect__strip_accents=['unicode', 'ascii'],
+                    lowercase=[True, False],
+                    vect__stop_words=['english', stop, None],
+                    clf__max_iter=[10, 100],
+                    clf__fit_intercept=[True, False],
+                    clf__penalty=['l2'],
+                    clf__solver=['liblinear', 'newton-cg'])
 
         start = time()
         # run grid search
