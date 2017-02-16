@@ -15,6 +15,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
+from os import remove
 import string
 from csv_cleaner import HTMLCleaner
 
@@ -36,16 +37,15 @@ CLEAN_DATA = './clean_data.csv'
 class UltraPipeline:
     @staticmethod
     def tokenizer(text):
-        tokens = word_tokenize(text)
+        cleaned_text = HTMLCleaner.clean(text)
+        tokens = word_tokenize(cleaned_text)
         tokens = [i for i in tokens if i not in string.punctuation]
         stemmer = PorterStemmer()
-        return [stemmer.stem(text) for text in tokens]
+        return [stemmer.stem(token) for token in tokens]
 
     @staticmethod
     def run(grid_search=False):
-        HTMLCleaner.clean(UNCLEAN_DATA, CLEAN_DATA)
-
-        df = pd.read_csv(CLEAN_DATA)
+        df = pd.read_csv(UNCLEAN_DATA)
         #
         # Hint: This might be an area to change the size
         # of your training and test sets for improved
@@ -55,7 +55,7 @@ class UltraPipeline:
         x = df.loc[:training_size, 'review'].values
         y = df.loc[:training_size, 'sentiment'].values
 
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.125, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.0875, random_state=0)
 
         # Perform feature extraction on the text.
         # Hint: Perhaps there are different preprocessors to
