@@ -1,4 +1,3 @@
-from constants import Constants
 from html.parser import HTMLParser
 
 """
@@ -7,7 +6,7 @@ http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
 """
 
 
-class CsvCleaner(HTMLParser):
+class HTMLCleaner(HTMLParser):
     def __init__(self):
         super().__init__()
         self.reset()
@@ -22,19 +21,8 @@ class CsvCleaner(HTMLParser):
         return ' '.join(self.fed)
 
     @staticmethod
-    def clean():
-        cleaner = CsvCleaner()
-        dirty_csv = open(Constants.UNCLEAN_DATA, 'r')
-        clean_csv = open(Constants.PARSED_DATA, 'w')
-        for line in dirty_csv:
-            line = line.replace('</3', '')  # edge case for broken heart
-            cleaner.feed(line)
-            clean_csv.write(cleaner.data())
-            cleaner = CsvCleaner()
-
-        dirty_csv.close()
-        clean_csv.close()
-
-
-if __name__ == '__main__':
-    CsvCleaner.clean()
+    def clean(text):
+        cleaner = HTMLCleaner()
+        cleaner_text = text.replace('</3', '')  # edge case for broken heart
+        cleaner.feed(cleaner_text)
+        return cleaner.data()
