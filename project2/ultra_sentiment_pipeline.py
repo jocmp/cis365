@@ -9,6 +9,7 @@ import pandas as pd
 import pickle
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import GridSearchCV as GridSearch
 from time import time
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -55,7 +56,7 @@ class UltraPipeline:
         x = df.loc[:training_size, 'review'].values
         y = df.loc[:training_size, 'sentiment'].values
 
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.0875, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
 
         # Perform feature extraction on the text.
         # Hint: Perhaps there are different preprocessors to
@@ -69,7 +70,10 @@ class UltraPipeline:
         # Hint: Are there other options to add to this process?
         # Look to documentation on Regression or similar methods for hints.
         # Possibly investigate alternative classifiers for text/sentiment.
-        clf = LogisticRegression(fit_intercept=False, random_state=31, n_jobs=-1)
+
+        # LogisticRegressionCV ==> k = 5 or 10
+
+        clf = LogisticRegressionCV(cv=10, fit_intercept=False, random_state=31, n_jobs=-1)
         lr_tfidf = Pipeline([('vect', tfidf), ('clf', clf)])
 
         if grid_search:
