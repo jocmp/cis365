@@ -1,28 +1,16 @@
-"""
-    Train a logistic regresion model for document classification.
-
-    Search this file for the keyword "Hint" for possible areas of
-    improvement.  There are of course others.
-"""
-
 import pandas as pd
 import pickle
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import GridSearchCV as GridSearch
-from time import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
-from os import remove
 import string
 from csv_cleaner import HTMLCleaner
 
-# Hint: These are not actually used in the current
-# pipeline, but would be used in an alternative 
-# tokenizer such as PorterStemming.
 import nltk
 from nltk.corpus import stopwords
 
@@ -32,7 +20,6 @@ nltk.data.load('tokenizers/punkt/english.pickle')
 stop = stopwords.words('english')
 
 UNCLEAN_DATA = './training_movie_data.csv'
-CLEAN_DATA = './clean_data.csv'
 
 
 class UltraPipeline:
@@ -51,16 +38,13 @@ class UltraPipeline:
     @staticmethod
     def run(grid_search=False):
         df = pd.read_csv(UNCLEAN_DATA)
-        #
-        # Hint: This might be an area to change the size
-        # of your training and test sets for improved
-        # predictive performance.
+
         training_size = 40000
 
         x = df.loc[:training_size, 'review'].values
         y = df.loc[:training_size, 'sentiment'].values
 
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.125, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.125, random_state=17)
 
         # Perform feature extraction on the text.
         # Hint: Perhaps there are different preprocessors to
@@ -70,13 +54,7 @@ class UltraPipeline:
                                 stop_words=stop,
                                 lowercase=False)
 
-        # Create a pipeline to vectorize the data and then perform regression.
-        # Hint: Are there other options to add to this process?
-        # Look to documentation on Regression or similar methods for hints.
-        # Possibly investigate alternative classifiers for text/sentiment.
-
         # LogisticRegressionCV ==> k = 5 or 10
-
         clf = LogisticRegressionCV(cv=10, random_state=31, n_jobs=-1)
         lr_tfidf = Pipeline([('vect', tfidf), ('clf', clf)])
 
@@ -90,11 +68,12 @@ class UltraPipeline:
         test_score = lr_tfidf.score(X_test, y_test)
         print('Test Accuracy: %.3f' % test_score)
 
-        # Save the classifier for use later.
+        # Save the classifier
         pickle.dump(lr_tfidf, open("saved_model.sav", 'wb'))
 
     @staticmethod
     def run_grid_search(X, y):
+        ''' Used to test out parameters '''
         tfidf = TfidfVectorizer(tokenizer=UltraPipeline.tokenizer,
                                 strip_accents='unicode',
                                 stop_words=stop)
@@ -106,21 +85,17 @@ class UltraPipeline:
                     vect__strip_accents=['unicode', 'ascii'],
                     vect__lowercase=[True, False],
                     vect__stop_words=['english', stop, None],
-                    clf__max_iter=[10, 100],
                     clf__fit_intercept=[True, False],
                     clf__penalty=['l2'],
                     clf__solver=['liblinear'])
 
-        start = time()
-        # run grid search
+        # Run grid search
         grid_search = GridSearch(pipeline, param_grid=grid, n_jobs=-1)
 
         grid_search.fit(X, y)
 
-        print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
-              % (time() - start, len(grid_search.cv_results_)))
         print(grid_search.cv_results_)
 
 
 if __name__ == '__main__':
-    UltraPipeline.run(grid_search=False)
+    UltraPipeline.run()
