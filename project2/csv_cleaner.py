@@ -1,12 +1,10 @@
 from html.parser import HTMLParser
 
-"""
-For initial code
-http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python
-"""
 
+class HtmlCleaner(HTMLParser):
+    # Class to parse through text and remove HTML tags
+    # `Initial sample code <http://stackoverflow.com/questions/753052/strip-html-from-strings-in-python>`_
 
-class HTMLCleaner(HTMLParser):
     def __init__(self):
         super().__init__()
         self.reset()
@@ -17,12 +15,13 @@ class HTMLCleaner(HTMLParser):
     def handle_data(self, d):
         self.fed.append(d)
 
-    def data(self):
+    def _data(self):
         return ' '.join(self.fed)
 
     @staticmethod
     def clean(text):
-        cleaner = HTMLCleaner()
-        replaced_text = text.replace('</3', '')  # edge case for broken heart
+        ''' Returns copy of text stripped of HTML tags '''
+        cleaner = HtmlCleaner()
+        replaced_text = text.replace('</3', '')  # edge case for 'broken heart'
         cleaner.feed(replaced_text)
-        return cleaner.data()
+        return cleaner._data()
