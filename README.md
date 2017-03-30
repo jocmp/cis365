@@ -12,7 +12,7 @@ pip3 install -r requirements.txt
 
 To add new pip requirements:
 ```
-pip freeze > requirements.txt
+pip3 freeze > requirements.txt
 ```
 
 
