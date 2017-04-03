@@ -6,15 +6,14 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
 TRAINING_DATA = './just_weight.csv'
-SMALL_SET = './100_last_attrs.csv'
-
+LOCATION_ONLY = './all_with_location.csv'
 sample_size = 100
 
 
 class BeeClassifier(object):
     @staticmethod
     def run():
-        scale_samples = pd.read_csv(SMALL_SET)
+        scale_samples = pd.read_csv(LOCATION_ONLY)
 
         data = scale(scale_samples)
 
@@ -23,7 +22,8 @@ class BeeClassifier(object):
 
     def visualize(self, data):
         reduced_data = PCA(n_components=2).fit_transform(data)
-        kmeans = KMeans(n_clusters=2)
+
+        kmeans = KMeans()
         kmeans.fit(reduced_data)
 
         # Step size of the mesh. Decrease to increase the quality of the VQ.

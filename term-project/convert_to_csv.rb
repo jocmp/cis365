@@ -6,7 +6,7 @@ def filter_value(value)
 end
 
 CSV.open('tmp/all_attrs.csv', 'wb') do |csv|
-  Message.find_each do |message| # batches of 1000
+  Message.where.not(latitude: 0).where.not(longitude: 0).find_each do |message| # batches of 1000
     attributes = [message.weight, message.humidity, message.temperature,
                   message.occurance_time.to_f, message.latitude, message.longitude]
     csv << attributes.map { |attr| filter_value attr }
