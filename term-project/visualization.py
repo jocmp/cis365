@@ -1,8 +1,9 @@
-class visualize:
-    import seaborn as sns
-    import spc
-    import matplotlib.pyplot as plt
+import seaborn as sns
+import spc
+import matplotlib.pyplot as plt
 
+
+class Visualize:
     def __init__(self, n):
         self.init = "init"
 

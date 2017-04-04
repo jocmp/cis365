@@ -4,8 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+import matplotlib
+from sklearn import svm
 
-TRAINING_DATA = './just_weight.csv'
+ONLY_WEIGHT_DATA = './data/last_1000_weight.csv'
 LOCATION_ONLY = './all_with_location.csv'
 sample_size = 100
 
@@ -24,42 +26,64 @@ class BeeClassifier(object):
         reduced_data = PCA(n_components=2).fit_transform(data)
 
         kmeans = KMeans()
+        # TODO iterate over kmeans
         kmeans.fit(reduced_data)
+        # TODO add anomaly detection to pipeline
 
-        # Step size of the mesh. Decrease to increase the quality of the VQ.
-        h = .02  # point in the mesh [x_min, x_max]x[y_min, y_max].
+        # TODO observe tested anomaly data
 
-        # Plot the decision boundary. For that, we will assign a color to each
-        x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
-        y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+        # TODO pull in graphing from visualization
 
-        # Obtain labels for each point in mesh. Use last trained model.
-        Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()])
+    @staticmethod
+    def run_svm():
+        xx, yy = np.meshgrid(np.linspace(-5, 5, 500), np.linspace(-5, 5, 500))
+        # Generate train data
+        X = pd.read_csv(ONLY_WEIGHT_DATA)
+        X_train = np.r_[X + 2, X - 2]
+        # Generate some regular novel observations
+        X = 0.3 * np.random.randn(20, 2)
+        X_test = np.r_[X + 2, X - 2]
+        # Generate some abnormal novel observations
+        X_outliers = np.random.uniform(low=-4, high=4, size=(20, 2))
 
-        # Put the result into a color plot
+        # fit the model
+        clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
+        clf.fit(X_train)
+        y_pred_train = clf.predict(X_train)
+        y_pred_test = clf.predict(X_test)
+        y_pred_outliers = clf.predict(X_outliers)
+        n_error_train = y_pred_train[y_pred_train == -1].size
+        n_error_test = y_pred_test[y_pred_test == -1].size
+        n_error_outliers = y_pred_outliers[y_pred_outliers == 1].size
+
+        # plot the line, the points, and the nearest vectors to the plane
+        Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
         Z = Z.reshape(xx.shape)
-        plt.figure(1)
-        plt.clf()
-        plt.imshow(Z, interpolation='nearest',
-                   extent=(xx.min(), xx.max(), yy.min(), yy.max()),
-                   cmap=plt.cm.Paired,
-                   aspect='auto', origin='lower')
 
-        plt.plot(reduced_data[:, 0], reduced_data[:, 1], 'k.', markersize=2)
-        # Plot the centroids as a white X
-        centroids = kmeans.cluster_centers_
-        plt.scatter(centroids[:, 0], centroids[:, 1],
-                    marker='x', s=169, linewidths=3,
-                    color='w', zorder=10)
-        plt.title('K-means clustering on the digits dataset (PCA-reduced data)\n'
-                  'Centroids are marked with white cross')
-        plt.xlim(x_min, x_max)
-        plt.ylim(y_min, y_max)
-        plt.xticks(())
-        plt.yticks(())
+        plt.title("Novelty Detection")
+        plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 7), cmap=plt.cm.PuBu)
+        a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
+       # plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
+
+        s = 40
+        b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s)
+        b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='blueviolet', s=s)
+        c = plt.scatter(X_outliers[:, 0], X_outliers[:, 1], c='gold', s=s)
+        plt.axis('tight')
+        plt.xlim((-5, 5))
+        plt.ylim((-5, 5))
+        plt.legend([a.collections[0], b1, b2, c],
+                   ["learned frontier", "training observations",
+                    "new regular observations", "new abnormal observations"],
+                   loc="upper left",
+                   prop=matplotlib.font_manager.FontProperties(size=11))
+        plt.xlabel(
+            "error train: %d/200 ; errors novel regular: %d/40 ; "
+            "errors novel abnormal: %d/40"
+            % (n_error_train, n_error_test, n_error_outliers))
         plt.show()
 
 
 if __name__ == '__main__':
-    BeeClassifier.run()
+    # BeeClassifier.run()
+    BeeClassifier.run_svm()
