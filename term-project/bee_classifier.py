@@ -5,85 +5,37 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib
+from sklearn.model_selection import train_test_split
 from sklearn import svm
 
-ONLY_WEIGHT_DATA = './data/last_1000_weight.csv'
-LOCATION_ONLY = './all_with_location.csv'
+SHORT_DATA = './data/last_1000_weight.csv'
+ALL_DATA = './data/just_weight.csv'
 sample_size = 100
 
 
 class BeeClassifier(object):
     @staticmethod
     def run():
-        scale_samples = pd.read_csv(LOCATION_ONLY)
+        scale_samples = pd.read_csv(ALL_DATA)
 
-        data = scale(scale_samples)
+        X = scale(scale_samples)
 
-        classifier = BeeClassifier()
-        classifier.visualize(data)
+        print(X.shape)
 
-    def visualize(self, data):
-        reduced_data = PCA(n_components=2).fit_transform(data)
+        BeeClassifier.plot_waveform(X)
+        # X_reduced = PCA(n_components=2).fit_transform(X)
 
-        kmeans = KMeans()
-        # TODO iterate over kmeans
-        kmeans.fit(reduced_data)
-        # TODO add anomaly detection to pipeline
+        # kmeans = KMeans(n_clusters=2, random_state=17).fit(X_reduced)
 
-        # TODO observe tested anomaly data
-
-        # TODO pull in graphing from visualization
+        # print(kmeans.labels_)
 
     @staticmethod
-    def run_svm():
-        xx, yy = np.meshgrid(np.linspace(-5, 5, 500), np.linspace(-5, 5, 500))
-        # Generate train data
-        X = pd.read_csv(ONLY_WEIGHT_DATA)
-        X_train = np.r_[X + 2, X - 2]
-        # Generate some regular novel observations
-        X = 0.3 * np.random.randn(20, 2)
-        X_test = np.r_[X + 2, X - 2]
-        # Generate some abnormal novel observations
-        X_outliers = np.random.uniform(low=-4, high=4, size=(20, 2))
-
-        # fit the model
-        clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-        clf.fit(X_train)
-        y_pred_train = clf.predict(X_train)
-        y_pred_test = clf.predict(X_test)
-        y_pred_outliers = clf.predict(X_outliers)
-        n_error_train = y_pred_train[y_pred_train == -1].size
-        n_error_test = y_pred_test[y_pred_test == -1].size
-        n_error_outliers = y_pred_outliers[y_pred_outliers == 1].size
-
-        # plot the line, the points, and the nearest vectors to the plane
-        Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
-        Z = Z.reshape(xx.shape)
-
-        plt.title("Novelty Detection")
-        plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 7), cmap=plt.cm.PuBu)
-        a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
-       # plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
-
-        s = 40
-        b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s)
-        b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='blueviolet', s=s)
-        c = plt.scatter(X_outliers[:, 0], X_outliers[:, 1], c='gold', s=s)
-        plt.axis('tight')
-        plt.xlim((-5, 5))
-        plt.ylim((-5, 5))
-        plt.legend([a.collections[0], b1, b2, c],
-                   ["learned frontier", "training observations",
-                    "new regular observations", "new abnormal observations"],
-                   loc="upper left",
-                   prop=matplotlib.font_manager.FontProperties(size=11))
-        plt.xlabel(
-            "error train: %d/200 ; errors novel regular: %d/40 ; "
-            "errors novel abnormal: %d/40"
-            % (n_error_train, n_error_test, n_error_outliers))
+    def plot_waveform(x, sample_size=1000):
+        plt.plot(x[0:sample_size])
+        plt.xlabel("Sample number")
+        plt.ylabel("Weight")
         plt.show()
 
 
 if __name__ == '__main__':
-    # BeeClassifier.run()
-    BeeClassifier.run_svm()
+    BeeClassifier.run()
