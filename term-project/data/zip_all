@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+find . -name '*.csv' -exec zip '{}.zip' '{}' \;
+rm *.csv
