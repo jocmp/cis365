@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+unzip \*.zip
+rm *.zip
