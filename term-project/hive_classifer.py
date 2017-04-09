@@ -19,8 +19,16 @@ class HiveClassifier(object):
         return pd.read_csv(filename)
 
     def run(self):
+        '''
+        http://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html
+        :return: void - visual printout
+        '''
         X = self.data_frame.sample(n=5_000).get_values()
         unscaled_training, unscaled_test = train_test_split(X, train_size=0.75, random_state=17)
+
+        unscaled_training.sort(axis=0)
+        unscaled_test.sort(axis=0)
+
         X_train = scale(unscaled_training)
         X_test = scale(unscaled_test)
 
@@ -58,11 +66,24 @@ class HiveClassifier(object):
 
         plt.title("Novelty Detection with SVM for Hive #%d- %d weight samples" % (self.hive_id, (len(X) / 2)))
 
+        self.show_outliers(clf, X_test, unscaled_test)
+
+        # plt.show()
+
+    def show_outliers(self, clf, X_test, test_data):
         test_predictions = clf.predict(X_test)
+
+        outlier_indices = []
         for i in range(len(test_predictions)):
             if test_predictions[i] == -1:
-                print("outlier ", unscaled_test[i])
+                print("outlier ", test_data[i])
+                outlier_indices.append(i)
 
+        normalized_data = np.array([test_data[index] for index in range(len(test_data))
+                                    if index not in outlier_indices])
+
+        plt.clf()
+        plt.plot(test_data[:, 0], test_data[:, 1], 'r', normalized_data[:, 0], normalized_data[:, 1], 'b')
         plt.show()
 
     def plot_hive_weight(self):
