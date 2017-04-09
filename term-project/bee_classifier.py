@@ -2,47 +2,62 @@ import numpy as np
 from sklearn.preprocessing import scale
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
 from sklearn.decomposition import PCA
-from sklearn.mixture import GaussianMixture
-from sklearn.model_selection import train_test_split
-from sklearn import svm
-import matplotlib.font_manager
+import time
 
-DATA_SAMPLE = './data/last_%d000_weight.csv'
-DATA_2000 = './data/last_2000_weight.csv'
-ALL_DATA = './data/all_attrs.csv'
-
+WITH_JUST_WEIGHT = './data/messages_just_weight.csv'
+WITH_COORDINATES = './data/messages_with_coords.csv'
 
 class BeeClassifier(object):
     @staticmethod
-    def run():
-        clf = BeeClassifier()
-        scale_samples = pd.read_csv(DATA_SAMPLE % (100))
+    def run(dataset, transform=False):
+        bee_clf = BeeClassifier()
+        samples = pd.read_csv(dataset).sample(n=5000)
+        if transform:
+            samples = PCA(n_components=2).fit_transform(samples)
 
-        X = scale(scale_samples)
+        bee_clf.set_title(dataset, transform, len(samples))
+        bee_clf.kmeans_scatter_plot(scale(samples))
 
-        clf.kmeans(X)
+    def set_title(self, dataset_name, transform, sample_size):
+        title = ""
+        if (dataset_name == WITH_JUST_WEIGHT):
+            title = "Weight with Occurrence Time\n "
+        if (dataset_name == WITH_COORDINATES):
+            title = "Weight, Coordinates with Occurence Time\n"
 
-    def kmeans(self, x):
-        reduced_data = PCA(n_components=2).fit_transform(x)
-        kmeans = KMeans(n_clusters=2, n_init=10)
+        if (transform):
+            title += "using 2 components\n"
 
-        X_train, X_test = train_test_split(reduced_data, test_size=0.5, random_state=17)
+        title += time.strftime('%l:%M%p %z on %b %d, %Y') + ", n=" + str(sample_size)
+        plt.title(title)
 
-        kmeans.fit(X_train)
+    def kmeans_scatter_plot(self, X):
+        clf = MiniBatchKMeans(n_clusters=2)
+        clf.fit(X)
 
-        y_predicted_from_training = kmeans.predict(X_train)
-        y_predicted_from_test = kmeans.predict(X_test)
+        centroids = clf.cluster_centers_
 
-        training_error = y_predicted_from_training[y_predicted_from_training == -1].size
-        testing_error = y_predicted_from_test[y_predicted_from_test == -1].size
+        labels = clf.labels_
+        colors = ['g.', 'r.']
 
-        b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='green')
-        b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='blueviolet')
+        for i in range(len(X)):
+            plt.plot(X[i][0], X[i][1], colors[labels[i]])
+
+        plt.scatter(centroids[:, 0], centroids[:, 1], marker="x", s=150, linewidths=5, zorder=10)
 
         plt.show()
 
+    @staticmethod
+    def run_on_individual_hive(hive_id):
+        """
+        :param hive_id: 
+        """
+        clf = BeeClassifier()
+        clf.plot_hive_weight(clf.hive_data_frame(hive_id))
+
+
 
 if __name__ == '__main__':
-    BeeClassifier.run()
+    BeeClassifier.run_on_individual_hive(49)
