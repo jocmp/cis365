@@ -56,7 +56,7 @@ class HiveClassifier(object):
             "error train: %d/%d ; errors novel regular: %d/%d ; "
             % (training_error, len(X_train) / 2, testing_error, len(X_test) / 2))
 
-        plt.title("Novelty Detection with SVM - %d weight samples" % (len(X) / 2))
+        plt.title("Novelty Detection with SVM for Hive #%d- %d weight samples" % (self.hive_id, (len(X) / 2)))
 
         test_predictions = clf.predict(X_test)
         for i in range(len(test_predictions)):
