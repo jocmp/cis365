@@ -4,16 +4,12 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as dates
 import matplotlib
 import matplotlib.font_manager
-import locale
-
-locale.setlocale(locale.LC_ALL, 'en_US')
 
 
 class Visualizer(object):
     @staticmethod
     def print_sample_size(hive_id, sample_size):
-        formatted_size = locale.format("%d", sample_size, grouping=True)
-        print("\nHive #%d with %s messages" % (hive_id, formatted_size))
+        print("\nHive #%d with %s messages" % (hive_id, sample_size))
 
     @staticmethod
     def output_accuracy_to_console(classifier, training, test):
@@ -23,11 +19,14 @@ class Visualizer(object):
         training_error = float(training_predictions[training_predictions == -1].size)
         testing_error = float(test_predictions[test_predictions == -1].size)
 
-        print("\n%.2f%% of data was outliers in training" % (training_error / (float(len(training))) * 100.0))
-        print("%.2f%% of data was outliers in testing" % (testing_error / float(len(training)) * 100.0))
+        print("\n%.2f%% of data were outliers in training" % (training_error / (float(len(training))) * 100.0))
+        print("%.2f%% of data were outliers in testing" % (testing_error / float(len(training)) * 100.0))
 
     @staticmethod
     def show_contours(classifier, hive_id, training_messages, testing_messages, total_size):
+        '''
+        For original sample graph: http://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html
+        '''
         training_predictions = classifier.predict(training_messages)
         test_predictions = classifier.predict(testing_messages)
 
@@ -54,10 +53,10 @@ class Visualizer(object):
                    loc="upper left",
                    prop=matplotlib.font_manager.FontProperties(size=11))
         plt.xlabel(
-            "error train: %d/%d ; errors novel regular: %d/%d ; "
+            "outliers in train: %d/%d ; outliers in test: %d/%d ; "
             % (training_error, len(training_messages), testing_error, len(testing_messages)))
 
-        plt.title("Novelty Detection with SVM for Hive #%d - %d weight samples" % (hive_id, (locale.format("%d", total_size, grouping=True))))
+        plt.title("Outlier Detection with SVM for Hive #%d - %d weight samples" % (hive_id, total_size))
         plt.show()
 
     @staticmethod
@@ -66,9 +65,10 @@ class Visualizer(object):
         plt.plot(inliers[:, 0], inliers[:, 1], 'b', label="In-lying Messages")
 
         plt.legend(loc='upper right')
-        plt.title("Novelty Detection with SVM for Hive #%d - %d weight samples" % (hive_id, (len(inliers))))
+        plt.xlabel('Time (ms)')
+        plt.ylabel('Weight (kg)')
+        plt.title("Outlier Detection with SVM for Hive #%d - %d weight samples" % (hive_id, len(all_messages)))
         plt.show()
-
 
     @staticmethod
     def _formatted_time(epoch_time):

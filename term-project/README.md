@@ -4,12 +4,12 @@
 * Vincent Ball 
 
 ## Running the Project
-The data is big! The following script will unzip a CSV file and run the classifier
+The following script will attempt to download pip3 requirements and run the classifier.
 ```sh
-./unzip_and_run
+./run_all.sh
 ```
 
-* If you get an error, try `chmod u+x classifier` and re-rerun. 
+* If you get an error, try `chmod u+x run_all.sh` and re-rerun.
 
 ## Getting Started
 To install new dependencies
