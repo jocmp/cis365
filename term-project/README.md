@@ -1,5 +1,15 @@
-# Term Project
-Due April 11.
+## Group members
+* Josiah Campbell
+* Timothy Eggleston
+* Vincent Ball 
+
+## Running the Project
+The data is big! The following script will unzip a CSV file and run the classifier
+```sh
+./unzip_and_run
+```
+
+* If you get an error, try `chmod u+x classifier` and re-rerun. 
 
 ## Getting Started
 To install new dependencies
