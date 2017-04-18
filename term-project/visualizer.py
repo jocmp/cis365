@@ -1,9 +1,9 @@
-import time
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.dates as dates
 import matplotlib
+from matplotlib import dates as mdates
 import matplotlib.font_manager
+import datetime as dates
 
 
 class Visualizer(object):
@@ -61,19 +61,21 @@ class Visualizer(object):
 
     @staticmethod
     def show_outliers(hive_id, all_messages, inliers):
-        plt.plot(all_messages[:, 0], all_messages[:, 1], 'r', label="All messages")
-        plt.plot(inliers[:, 0], inliers[:, 1], 'b', label="In-lying Messages")
+        fmt = mdates.DateFormatter('%Y-%m-%d')
+        plt.plot(Visualizer._convert_dates(all_messages[:, 0]), all_messages[:, 1], 'r',
+                 label="All messages")
+        plt.plot(Visualizer._convert_dates(inliers[:, 0]), inliers[:, 1], 'b', label="In-lying Messages")
+        plt.gca().xaxis.set_major_formatter(fmt)
+        plt.xticks(rotation=45)
 
         plt.legend(loc='upper right')
-        plt.xlabel('Time (ms)')
+        plt.xlabel('Time')
         plt.ylabel('Weight (kg)')
-        plt.title("Outlier Detection with SVM for Hive #%d - %d weight samples" % (hive_id, len(all_messages)))
+
+        # plt.title("Outlier Detection with SVM for Hive #%d - %d weight samples" % (hive_id, len(all_messages)))
         plt.show()
 
     @staticmethod
-    def _formatted_time(epoch_time):
-        return time.strftime('%Y-%m-%d %I:%M%p', time.localtime(epoch_time))
-
-    @staticmethod
-    def _axis_times(epoch_times):
-        return np.array([time.strftime('%Y-%m-%d', time.localtime(x)) for x in epoch_times])
+    def _convert_dates(epoch_times):
+        arr = np.array([dates.datetime.fromtimestamp(x) for x in epoch_times])
+        return arr

@@ -49,7 +49,7 @@ class HiveClassifier(object):
         if visualizations:
             inliers = self.get_inliers(clf, scaler.transform(X), X)
             Visualizer.show_outliers(self.hive_id, X, inliers)
-            Visualizer.show_contours(clf, self.hive_id, X_train, X_test, self.total_size)
+            # Visualizer.show_contours(clf, self.hive_id, X_train, X_test, self.total_size)
 
     @staticmethod
     def get_inliers(svm, scaled_messages, all_messages):
@@ -78,4 +78,4 @@ if __name__ == '__main__':
     selected_hives = [11, 49, 137]  # Hive IDs associated with CSV files
     for selected_hive in selected_hives:
         classifier = HiveClassifier(hive_id=selected_hive)
-        classifier.run()
+        classifier.run_with_visualizations()
