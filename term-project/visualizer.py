@@ -61,18 +61,16 @@ class Visualizer(object):
 
     @staticmethod
     def show_outliers(hive_id, all_messages, inliers):
-        fmt = mdates.DateFormatter('%Y-%m-%d')
         plt.plot(Visualizer._convert_dates(all_messages[:, 0]), all_messages[:, 1], 'r',
                  label="All messages")
         plt.plot(Visualizer._convert_dates(inliers[:, 0]), inliers[:, 1], 'b', label="In-lying Messages")
-        plt.gca().xaxis.set_major_formatter(fmt)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         plt.xticks(rotation=45)
 
         plt.legend(loc='upper right')
         plt.xlabel('Time')
         plt.ylabel('Weight (kg)')
 
-        # plt.title("Outlier Detection with SVM for Hive #%d - %d weight samples" % (hive_id, len(all_messages)))
         plt.show()
 
     @staticmethod
